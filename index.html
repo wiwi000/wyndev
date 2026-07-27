@@ -1,0 +1,2091 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HA MINH KHIEM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=SF+Pro+Display:wght@700&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --ios-bg: #000000;
+            --glass-bg: rgba(30, 32, 40, 0.36);
+            --glass-border: rgba(255, 255, 255, 0.16);
+            --glass-highlight: rgba(255, 255, 255, 0.25);
+            --ios-border: rgba(255, 255, 255, 0.1);
+            --ios-blue: #007AFF;
+            --ios-gray: #A6A6AD;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: var(--ios-bg);
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', system-ui, sans-serif;
+            color: #fff;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            /* Block long-press callout, text selection and double-tap zoom */
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+            /* pan-y blocks pinch/double-tap zoom at the compositor level,
+               replacing the old non-passive JS touchmove blocker */
+            touch-action: pan-y;
+        }
+
+        /* Hide the page scrollbar (page stays scrollable) */
+        html {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar {
+            display: none;
+        }
+
+        img {
+            -webkit-user-drag: none;
+            user-drag: none;
+            -webkit-touch-callout: none;
+        }
+
+        /* Oversized + translated on scroll (parallax): the fixed height never changes when
+           mobile URL bars collapse, and transform runs on the compositor — no repaint jank */
+        .bg-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 135vh;
+            height: 135lvh;
+            z-index: -2;
+            background: url('./assets/background.jpg') center / cover no-repeat #000;
+            will-change: transform;
+        }
+
+        .bg-image::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.28);
+        }
+
+        @keyframes bg-slide {
+            to { transform: translate3d(0, -35lvh, 0); }
+        }
+
+        /* Compositor-driven parallax where supported: perfectly synced with the
+           scroll offset, no JS frame lag, immune to mobile URL-bar resizes */
+        @supports (animation-timeline: scroll()) {
+            .bg-image {
+                animation: bg-slide linear both;
+                animation-timeline: scroll(root);
+            }
+        }
+
+        .bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: transparent;
+        }
+
+        .main-wrapper {
+            max-width: 420px;
+            margin: 40px auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .ios-card {
+            position: relative;
+            background: var(--glass-bg);
+            border-radius: 32px;
+            padding: 28px 26px;
+            margin-bottom: 18px;
+            border: 1px solid var(--glass-border);
+            box-shadow:
+                0 10px 40px rgba(0, 0, 0, 0.45),
+                inset 0 1px 0 var(--glass-highlight),
+                inset 0 0 24px rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(28px) saturate(180%);
+            -webkit-backdrop-filter: blur(28px) saturate(180%);
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        /* Liquid-glass specular sheen across the top of each card */
+        .ios-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(165deg,
+                rgba(255, 255, 255, 0.14) 0%,
+                rgba(255, 255, 255, 0.04) 28%,
+                transparent 46%,
+                transparent 82%,
+                rgba(255, 255, 255, 0.05) 100%);
+            pointer-events: none;
+        }
+
+        .ios-card > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .ios-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(255, 255, 255, 0.24);
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.55),
+                inset 0 1px 0 rgba(255, 255, 255, 0.35),
+                inset 0 0 30px rgba(255, 255, 255, 0.05);
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .avatar-container {
+            position: relative;
+            width: 148px;
+            height: 148px;
+            margin: 0 auto 20px;
+        }
+
+        .avatar-ring {
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            width: 164px;
+            height: 164px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #007AFF, #00C7FD, #007AFF);
+            padding: 4px;
+            box-shadow: 0 0 30px rgba(0, 122, 255, 0.4);
+            animation: ring-pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes ring-pulse {
+            0%, 100% { box-shadow: 0 0 30px rgba(0, 122, 255, 0.4); }
+            50% { box-shadow: 0 0 50px rgba(0, 122, 255, 0.7); }
+        }
+
+        .avatar-img {
+            width: 148px;
+            height: 148px;
+            border-radius: 50%;
+            border: 4px solid rgba(255, 255, 255, 0.18);
+            object-fit: cover;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+        }
+
+        .status-dot {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            width: 26px;
+            height: 26px;
+            background: #30D158;
+            border: 3px solid rgba(20, 22, 28, 0.85);
+            border-radius: 50%;
+            z-index: 3;
+            box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.6);
+            animation: status-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes status-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.6); }
+            70% { box-shadow: 0 0 0 12px rgba(48, 209, 88, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(48, 209, 88, 0); }
+        }
+
+        .name-section h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.6px;
+            line-height: 1.1;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+        }
+
+        .verified-badge {
+            width: 1.05em;
+            height: 1.05em;
+            flex-shrink: 0;
+            filter: drop-shadow(0 0 8px rgba(29, 155, 240, 0.55));
+        }
+
+        .title {
+            font-size: clamp(0.6rem, 3vw, 0.8rem);
+            color: var(--ios-gray);
+            font-weight: 500;
+            letter-spacing: 0.2px;
+            white-space: nowrap;
+        }
+
+        .social-bar {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin: 22px 0 12px;
+            flex-wrap: wrap;
+        }
+
+        .social-item {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-decoration: none;
+            overflow: hidden;
+        }
+
+        .social-item svg {
+            width: 22px;
+            height: 22px;
+            display: block;
+        }
+
+        .social-item:hover {
+            transform: scale(1.1) translateY(-3px);
+            filter: brightness(1.15);
+        }
+
+        .social-item.facebook {
+            background: linear-gradient(180deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 45%), #0866FF;
+            box-shadow: 0 6px 16px rgba(8, 102, 255, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+        }
+
+        .social-item.tiktok {
+            background: linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0) 45%), #010101;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .social-item.tiktok svg {
+            width: 24px;
+            height: 24px;
+            overflow: visible;
+        }
+
+        .social-item.instagram {
+            background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 45%),
+                radial-gradient(circle at 30% 110%, #FFDB8B 0%, #EE653D 25%, #D42E81 50%, #A237B6 75%, #3E57BC 100%);
+            box-shadow: 0 6px 16px rgba(212, 46, 129, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+        }
+
+        .social-item.instagram svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .social-item.discord {
+            background: linear-gradient(180deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 45%), #5865F2;
+            box-shadow: 0 6px 16px rgba(88, 101, 242, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+        }
+
+        .social-item.discord svg {
+            width: 26px;
+            height: 26px;
+        }
+
+        .section-header {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-header i {
+            color: #007AFF;
+            font-size: 1.05rem;
+        }
+
+        .info-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            padding: 13px 16px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            margin-bottom: 4px;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .info-row:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.16);
+        }
+
+        .info-row i {
+            width: 22px;
+            color: #007AFF;
+            margin-right: 14px;
+            font-size: 1rem;
+        }
+
+        .info-row span {
+            font-size: clamp(0.6rem, 3vw, 0.78rem);
+            font-weight: 500;
+            color: #fff;
+            white-space: nowrap;
+        }
+
+        a.info-link {
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+        }
+
+        .info-link .chevron {
+            margin-left: auto;
+            margin-right: 0;
+            width: auto;
+            color: var(--ios-gray);
+            font-size: 0.75rem;
+        }
+
+        /* ==================== PAYMENT (neon scanner style) ==================== */
+        /* Theme colors are registered custom properties so the whole card can
+           cross-fade between the MB (cyan/blue) and MoMo (soft pink) themes */
+        @property --pn-a { syntax: '<color>'; inherits: true; initial-value: #00C7FD; }
+        @property --pn-b { syntax: '<color>'; inherits: true; initial-value: #7AB8FF; }
+        @property --pn-c { syntax: '<color>'; inherits: true; initial-value: #007AFF; }
+        @property --pn-d { syntax: '<color>'; inherits: true; initial-value: #7A52FF; }
+        @property --pn-tab-a { syntax: '<color>'; inherits: true; initial-value: #2E9BFF; }
+        @property --pn-tab-b { syntax: '<color>'; inherits: true; initial-value: #0068D6; }
+        @property --pn-tab-glow { syntax: '<color>'; inherits: true; initial-value: rgba(0, 122, 255, 0.45); }
+        @property --pn-tint-a { syntax: '<color>'; inherits: true; initial-value: rgba(0, 199, 253, 0.12); }
+        @property --pn-tint-b { syntax: '<color>'; inherits: true; initial-value: rgba(122, 82, 255, 0.14); }
+        @property --pn-glow { syntax: '<color>'; inherits: true; initial-value: rgba(0, 199, 253, 0.12); }
+        @property --pn-bracket-glow { syntax: '<color>'; inherits: true; initial-value: rgba(0, 199, 253, 0.8); }
+
+        .pay-neon {
+            --pn-a: #00C7FD;
+            --pn-b: #7AB8FF;
+            --pn-c: #007AFF;
+            --pn-d: #7A52FF;
+            --pn-tab-a: #2E9BFF;
+            --pn-tab-b: #0068D6;
+            --pn-tab-glow: rgba(0, 122, 255, 0.45);
+            --pn-tint-a: rgba(0, 199, 253, 0.12);
+            --pn-tint-b: rgba(122, 82, 255, 0.14);
+            --pn-glow: rgba(0, 199, 253, 0.12);
+            --pn-bracket-glow: rgba(0, 199, 253, 0.8);
+            position: relative;
+            border-radius: 26px;
+            margin-bottom: 18px;
+            padding: 22px 20px 18px;
+            background:
+                radial-gradient(130% 100% at 80% 0%, var(--pn-tint-a) 0%, transparent 55%),
+                radial-gradient(130% 100% at 10% 100%, var(--pn-tint-b) 0%, transparent 55%),
+                #0B0E17;
+            box-shadow: 0 16px 50px rgba(0, 0, 0, 0.65), 0 0 34px var(--pn-glow);
+            transition:
+                --pn-a 0.7s ease, --pn-b 0.7s ease, --pn-c 0.7s ease, --pn-d 0.7s ease,
+                --pn-tab-a 0.7s ease, --pn-tab-b 0.7s ease, --pn-tab-glow 0.7s ease,
+                --pn-tint-a 0.7s ease, --pn-tint-b 0.7s ease, --pn-glow 0.7s ease,
+                --pn-bracket-glow 0.7s ease;
+        }
+
+        /* Soft-pink MoMo theme, applied while the MoMo QR is in view */
+        .pay-neon.momo {
+            --pn-a: #FF8CC3;
+            --pn-b: #FFC2DF;
+            --pn-c: #F0568F;
+            --pn-d: #C9377E;
+            --pn-tab-a: #FF7DB8;
+            --pn-tab-b: #D6367F;
+            --pn-tab-glow: rgba(214, 54, 127, 0.45);
+            --pn-tint-a: rgba(255, 140, 195, 0.14);
+            --pn-tint-b: rgba(201, 55, 126, 0.16);
+            --pn-glow: rgba(255, 92, 168, 0.16);
+            --pn-bracket-glow: rgba(255, 140, 195, 0.8);
+        }
+
+        /* Neon gradient ring (masked to a thin border, same proven technique
+           as the achievement card's gold ring) */
+        .pay-neon::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 26px;
+            padding: 1.5px;
+            background: linear-gradient(120deg, var(--pn-a), var(--pn-c) 40%, var(--pn-d) 80%, var(--pn-a));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        .n-title {
+            text-align: center;
+            font-size: 0.95rem;
+            font-weight: 800;
+            letter-spacing: 2.5px;
+            background: linear-gradient(90deg, var(--pn-a), var(--pn-b));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 14px;
+        }
+
+        .n-tabs {
+            display: flex;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 999px;
+            padding: 4px;
+            margin-bottom: 16px;
+        }
+
+        .n-tab {
+            flex: 1;
+            border: none;
+            font: inherit;
+            text-align: center;
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 8px 0;
+            border-radius: 999px;
+            color: #9AA3B5;
+            background: transparent;
+            cursor: pointer;
+            transition: color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .n-tab.on {
+            color: #fff;
+            background: linear-gradient(180deg, var(--pn-tab-a), var(--pn-tab-b));
+            box-shadow: 0 4px 14px var(--pn-tab-glow);
+        }
+
+        .n-tab:focus-visible {
+            outline: 2px solid var(--pn-a);
+            outline-offset: 2px;
+        }
+
+        .n-frame {
+            position: relative;
+            padding: 14px;
+        }
+
+        /* Viewfinder corner brackets */
+        .n-frame::before,
+        .n-frame::after,
+        .n-corner::before,
+        .n-corner::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border: 3px solid var(--pn-a);
+            filter: drop-shadow(0 0 6px var(--pn-bracket-glow));
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .n-frame::before { top: 0; left: 0; border-right: none; border-bottom: none; border-radius: 12px 0 0 0; }
+        .n-frame::after { top: 0; right: 0; border-left: none; border-bottom: none; border-radius: 0 12px 0 0; }
+        .n-corner::before { bottom: 0; left: 0; border-right: none; border-top: none; border-radius: 0 0 0 12px; }
+        .n-corner::after { bottom: 0; right: 0; border-left: none; border-top: none; border-radius: 0 0 12px 0; }
+
+        .n-foot {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 14px;
+            padding: 0 4px;
+        }
+
+        .n-bank span {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #EAF6FF;
+        }
+
+        .n-bank small {
+            display: block;
+            font-weight: 500;
+            font-size: 0.6rem;
+            color: #7E8AA0;
+            margin-top: 2px;
+            letter-spacing: 0.3px;
+        }
+
+        .n-live {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: #30D158;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+
+        .n-live i {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #30D158;
+            box-shadow: 0 0 8px #30D158;
+            animation: status-pulse 2s ease-in-out infinite;
+        }
+
+        .payment-carousel {
+            touch-action: pan-x pan-y;
+            overflow-x: auto;
+            overscroll-behavior-x: contain;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 14px;
+            scrollbar-width: none;
+            cursor: grab;
+        }
+
+        .payment-carousel::-webkit-scrollbar {
+            display: none;
+        }
+
+        .payment-carousel.dragging {
+            cursor: grabbing;
+            scroll-snap-type: none;
+        }
+
+        .payment-track {
+            display: flex;
+        }
+
+        .payment-slide {
+            flex: 0 0 100%;
+            scroll-snap-align: center;
+            scroll-snap-stop: always;
+            text-align: center;
+        }
+
+        .qr-wrap {
+            position: relative;
+            width: 100%;
+            max-width: 320px;
+            margin: 0 auto;
+            border-radius: 14px;
+            cursor: pointer;
+        }
+
+        .payment-slide img {
+            width: 100%;
+            /* Keep the width/height attributes as an aspect-ratio hint only */
+            height: auto;
+            border-radius: 14px;
+            background: #fff;
+            display: block;
+            pointer-events: none;
+            -webkit-user-drag: none;
+            user-select: none;
+        }
+
+        /* Tap-to-save overlay on each QR */
+        .qr-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            border-radius: 14px;
+            background: rgba(10, 12, 18, 0.55);
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .qr-wrap.active .qr-overlay {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .qr-save-btn {
+            border: none;
+            border-radius: 999px;
+            padding: 12px 22px;
+            font: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #fff;
+            background: linear-gradient(180deg, var(--pn-tab-a), var(--pn-tab-b));
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), 0 4px 16px var(--pn-tab-glow), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transform: translateY(6px);
+            transition: transform 0.25s ease;
+        }
+
+        .qr-wrap.active .qr-save-btn { transform: translateY(0); }
+
+        .qr-save-btn:active { transform: scale(0.95); }
+
+        .qr-save-btn:focus-visible {
+            outline: 2px solid #fff;
+            outline-offset: 3px;
+        }
+
+        .payment-carousel:focus-visible {
+            outline: 2px solid #007AFF;
+            outline-offset: 3px;
+        }
+
+        .payment-hint {
+            text-align: center;
+            margin-top: 12px;
+            font-size: 0.72rem;
+            color: #7E8AA0;
+        }
+
+        .payment-hint i {
+            color: var(--pn-c);
+            margin-right: 4px;
+        }
+
+        /* ==================== ACHIEVEMENT (gold trading-card style, distinct from glass cards) ==================== */
+        .achieve-card {
+            position: relative;
+            isolation: isolate;
+            border-radius: 28px;
+            padding: 26px 22px 22px;
+            margin-bottom: 18px;
+            background:
+                radial-gradient(120% 90% at 15% 0%, rgba(122, 82, 255, 0.18) 0%, transparent 55%),
+                radial-gradient(120% 90% at 85% 100%, rgba(243, 198, 75, 0.12) 0%, transparent 55%),
+                linear-gradient(160deg, #10131E 0%, #171126 55%, #0E1018 100%);
+            box-shadow: 0 12px 44px rgba(0, 0, 0, 0.55);
+        }
+
+        /* Animated gold frame (masked to a thin ring) */
+        .achieve-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 28px;
+            padding: 1.5px;
+            background: linear-gradient(120deg, #8E6A1E, #F3C64B 22%, #FFF3C4 38%, #B47F16 55%, #F3C64B 78%, #8E6A1E);
+            background-size: 220% 220%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            pointer-events: none;
+            animation: gold-flow 7s linear infinite;
+        }
+
+        @keyframes gold-flow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .achieve-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .achieve-logo {
+            width: 42px;
+            height: 42px;
+            flex-shrink: 0;
+            filter: drop-shadow(0 0 10px rgba(243, 198, 75, 0.45));
+        }
+
+        .achieve-title {
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            background: linear-gradient(120deg, #FFF3C4, #F3C64B 45%, #D9A425);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .achieve-sub {
+            font-size: 0.66rem;
+            color: var(--ios-gray);
+            letter-spacing: 0.4px;
+            margin-top: 2px;
+        }
+
+        .trophy-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .trophy-card {
+            position: relative;
+            display: block;
+            border: none;
+            font: inherit;
+            padding: 3px;
+            border-radius: 18px;
+            background: linear-gradient(160deg, #F7DE8C 0%, #C89020 30%, #FFF3C4 50%, #A9770F 72%, #E9C35B 100%);
+            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5), 0 0 18px rgba(243, 198, 75, 0.18);
+            cursor: pointer;
+            overflow: hidden;
+            transition: transform 0.45s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.45s ease;
+        }
+
+        .trophy-card:nth-child(1) { transform: rotate(-2.5deg); }
+        .trophy-card:nth-child(2) { transform: rotate(2.5deg); }
+
+        .trophy-card:hover,
+        .trophy-card:focus-visible {
+            transform: rotate(0deg) translateY(-6px) scale(1.03);
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), 0 0 26px rgba(243, 198, 75, 0.35);
+            z-index: 2;
+        }
+
+        .trophy-card:focus-visible {
+            outline: 2px solid #F3C64B;
+            outline-offset: 3px;
+        }
+
+        /* Holographic sheen sweeping across each card */
+        .trophy-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.35) 48%, rgba(120, 220, 255, 0.22) 52%, transparent 68%);
+            transform: translateX(-140%);
+            animation: holo-sweep 5.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+
+        .trophy-card:nth-child(2)::after { animation-delay: 2.6s; }
+
+        @keyframes holo-sweep {
+            0% { transform: translateX(-140%); }
+            38% { transform: translateX(140%); }
+            100% { transform: translateX(140%); }
+        }
+
+        .trophy-inner {
+            display: block;
+            border-radius: 15px;
+            overflow: hidden;
+            background: #0D0F16;
+        }
+
+        .trophy-inner img {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            display: block;
+        }
+
+        .trophy-tag {
+            display: block;
+            padding: 9px 8px 10px;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0)), #12141D;
+        }
+
+        .trophy-tag strong {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #FFE9A8;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .trophy-tag span {
+            display: block;
+            font-size: 0.58rem;
+            color: var(--ios-gray);
+            margin-top: 2px;
+            letter-spacing: 0.5px;
+        }
+
+        .achieve-hint {
+            text-align: center;
+            margin-top: 14px;
+            font-size: 0.72rem;
+            color: var(--ios-gray);
+        }
+
+        .achieve-hint i {
+            color: #F3C64B;
+            margin-right: 4px;
+        }
+
+        /* ==================== LIGHTBOX (achievement zoom) ==================== */
+        .lightbox {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: rgba(0, 0, 0, 0.86);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+        }
+
+        .lightbox.open {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transition: opacity 0.3s ease;
+        }
+
+        .lightbox img {
+            max-width: min(92vw, 480px);
+            max-height: 82vh;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            background: rgba(30, 32, 40, 0.6);
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        /* ==================== MUSIC CARD (vinyl over full-bleed artwork) ==================== */
+        .music-card {
+            position: relative;
+            border-radius: 24px;
+            margin-bottom: 18px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 16px 46px rgba(0, 0, 0, 0.6);
+        }
+
+        /* Song artwork fills the card, faded under a color ramp for readability */
+        .music-bg {
+            position: absolute;
+            inset: 0;
+        }
+
+        .music-bg img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .music-bg::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(90deg, rgba(8, 9, 14, 0.92) 0%, rgba(8, 9, 14, 0.7) 45%, rgba(8, 9, 14, 0.32) 100%),
+                linear-gradient(180deg, transparent 40%, rgba(8, 9, 14, 0.55) 100%);
+        }
+
+        .music-in {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px 18px;
+        }
+
+        /* Full vinyl record — spins while the track plays */
+        .vinyl {
+            position: relative;
+            width: 84px;
+            height: 84px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            background: repeating-radial-gradient(circle at 50% 50%, #131313 0 1.6px, #202020 1.6px 3.2px);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6), inset 0 0 14px rgba(0, 0, 0, 0.8);
+            animation: vinyl-spin 6s linear infinite;
+            animation-play-state: paused;
+        }
+
+        .music-card.playing .vinyl { animation-play-state: running; }
+
+        @keyframes vinyl-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .vinyl::after {
+            content: '';
+            position: absolute;
+            top: 6%;
+            left: 14%;
+            width: 46%;
+            height: 20%;
+            border-radius: 50%;
+            background: linear-gradient(120deg, rgba(255, 255, 255, 0.12), transparent 70%);
+            transform: rotate(-18deg);
+        }
+
+        .vinyl-label {
+            position: absolute;
+            inset: 26px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #FFB454 0%, #E07B00 75%);
+            border: 2px solid rgba(0, 0, 0, 0.4);
+        }
+
+        .vinyl-hole {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 7px;
+            height: 7px;
+            margin: -3.5px 0 0 -3.5px;
+            border-radius: 50%;
+            background: #0B0B0E;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            z-index: 2;
+        }
+
+        .music-meta {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .music-label {
+            font-size: 0.55rem;
+            font-weight: 600;
+            letter-spacing: 1.4px;
+            color: #FFB454;
+            margin-bottom: 3px;
+        }
+
+        .music-label i {
+            margin-right: 4px;
+            font-size: 0.55rem;
+        }
+
+        .music-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .music-artist {
+            font-size: 0.66rem;
+            color: var(--ios-gray);
+            margin-top: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .music-progress {
+            padding: 7px 0 5px;
+            cursor: pointer;
+        }
+
+        .music-track {
+            position: relative;
+            height: 5px;
+            border-radius: 99px;
+            background: rgba(255, 255, 255, 0.14);
+        }
+
+        .music-progress-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 0%;
+            border-radius: 99px;
+            background: linear-gradient(90deg, #FF9500, #FFB454);
+        }
+
+        .music-progress-fill::after {
+            content: '';
+            position: absolute;
+            right: -5px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .music-time {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.6rem;
+            color: var(--ios-gray);
+            margin-top: 3px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .music-btn {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            border: none;
+            flex-shrink: 0;
+            background: linear-gradient(180deg, #FFB454, #E07B00);
+            color: #1C1712;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 20px rgba(255, 149, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+            transition: transform 0.25s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.25s ease;
+        }
+
+        .music-btn:active { transform: scale(0.92); }
+
+        .music-btn:focus-visible {
+            outline: 2px solid #FFB454;
+            outline-offset: 3px;
+        }
+
+        .music-btn .fa-play { margin-left: 3px; }
+
+        .music-card.playing .music-btn {
+            box-shadow: 0 8px 24px rgba(255, 149, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+
+        /* Off-screen holder for the YouTube iframe that supplies the audio */
+        .yt-hidden {
+            position: fixed;
+            left: -9999px;
+            top: 0;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 24px 0 10px;
+            font-size: 0.75rem;
+            color: #C7C7CC;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-shadow: 0 1px 8px rgba(0, 0, 0, 0.85);
+        }
+
+        .fade-in {
+            animation: fadeUp 0.7s cubic-bezier(0.23, 1, 0.32, 1) backwards;
+        }
+
+        .fade-in.delay-1 { animation-delay: 0.1s; }
+        .fade-in.delay-2 { animation-delay: 0.2s; }
+        .fade-in.delay-3 { animation-delay: 0.3s; }
+        .fade-in.delay-4 { animation-delay: 0.4s; }
+        .fade-in.delay-5 { animation-delay: 0.5s; }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(25px);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-wrapper { padding: 12px; margin: 20px auto; }
+
+            /* Lighter glass blur: backdrop-filter cost grows with radius and
+               phones re-filter every frame over the moving parallax background */
+            .ios-card {
+                padding: 22px 18px;
+                border-radius: 22px;
+                backdrop-filter: blur(16px) saturate(160%);
+                -webkit-backdrop-filter: blur(16px) saturate(160%);
+            }
+
+            /* The animated gold ring repaints every frame — keep it static on phones */
+            .achieve-card::before { animation: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-image"></div>
+    <canvas id="bg-canvas" class="bg-canvas"></canvas>
+    
+    <div class="main-wrapper">
+        
+        <!-- Profile Card -->
+        <div class="ios-card fade-in">
+            <div class="profile-header">
+                <div class="avatar-container">
+                    <div class="avatar-ring"></div>
+                    <img src="./assets/avatar.jpg"
+                         alt="Ha Minh Khiem" class="avatar-img" draggable="false">
+                    <div class="status-dot"></div>
+                </div>
+
+                <div class="name-section">
+                    <h1>Ha Minh Khiem
+                        <svg class="verified-badge" viewBox="0 0 24 24" aria-label="Verified">
+                            <path fill="#1D9BF0" d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91c-1.31.67-2.2 1.91-2.2 3.34s.89 2.67 2.2 3.34c-.46 1.39-.21 2.9.8 3.91s2.52 1.26 3.91.81c.67 1.31 1.91 2.19 3.34 2.19s2.68-.88 3.34-2.19c1.39.45 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34zm-11.71 4.2L6.8 12.46l1.41-1.42 2.26 2.26 4.8-5.23 1.47 1.36-6.2 6.77z"/>
+                        </svg>
+                    </h1>
+                    <div class="title">"A winner is just a loser who tried one more time."</div>
+                </div>
+            </div>
+
+            <!-- Social Links -->
+            <div class="social-bar">
+                <a href="https://www.facebook.com/share/1EUqLeuK39/" target="_blank" rel="noopener" class="social-item facebook" title="Facebook">
+                    <svg viewBox="0 0 320 512" aria-hidden="true"><path fill="#fff" d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0c-73.22 0-121.08 44.38-121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z"/></svg>
+                </a>
+                <a href="https://www.tiktok.com/@mkhizm_shy" target="_blank" rel="noopener" class="social-item tiktok" title="TikTok">
+                    <svg viewBox="0 0 448 512" aria-hidden="true">
+                        <path fill="#25F4EE" transform="translate(-9,-9)" d="M448,209.91a210.06,210.06,0,0,1-122.77-39.25V349.38A162.55,162.55,0,1,1,185,188.31V278.2a74.62,74.62,0,1,0,52.23,71.18V0l88,0a121.18,121.18,0,0,0,1.86,22.17h0A122.18,122.18,0,0,0,381,102.39a121.43,121.43,0,0,0,67,20.14Z"/>
+                        <path fill="#FE2C55" transform="translate(9,9)" d="M448,209.91a210.06,210.06,0,0,1-122.77-39.25V349.38A162.55,162.55,0,1,1,185,188.31V278.2a74.62,74.62,0,1,0,52.23,71.18V0l88,0a121.18,121.18,0,0,0,1.86,22.17h0A122.18,122.18,0,0,0,381,102.39a121.43,121.43,0,0,0,67,20.14Z"/>
+                        <path fill="#fff" d="M448,209.91a210.06,210.06,0,0,1-122.77-39.25V349.38A162.55,162.55,0,1,1,185,188.31V278.2a74.62,74.62,0,1,0,52.23,71.18V0l88,0a121.18,121.18,0,0,0,1.86,22.17h0A122.18,122.18,0,0,0,381,102.39a121.43,121.43,0,0,0,67,20.14Z"/>
+                    </svg>
+                </a>
+                <a href="https://www.instagram.com/mkhizm_shy" target="_blank" rel="noopener" class="social-item instagram" title="Instagram">
+                    <svg viewBox="0 0 448 512" aria-hidden="true"><path fill="#fff" d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"/></svg>
+                </a>
+                <a href="https://discord.gg/gc4pSkUq" target="_blank" rel="noopener" class="social-item discord" title="Discord">
+                    <svg viewBox="0 0 640 512" aria-hidden="true"><path fill="#fff" d="M524.531,69.836a1.5,1.5,0,0,0-.764-.7A485.065,485.065,0,0,0,404.081,32.03a1.816,1.816,0,0,0-1.923.91,337.461,337.461,0,0,0-14.9,30.6,447.848,447.848,0,0,0-134.426,0,309.541,309.541,0,0,0-15.135-30.6,1.89,1.89,0,0,0-1.924-.91A483.689,483.689,0,0,0,116.085,69.137a1.712,1.712,0,0,0-.788.676C39.068,183.651,18.186,294.69,28.43,404.354a2.016,2.016,0,0,0,.765,1.375A487.666,487.666,0,0,0,176.02,479.918a1.9,1.9,0,0,0,2.063-.676A348.2,348.2,0,0,0,208.12,430.4a1.86,1.86,0,0,0-1.019-2.588,321.173,321.173,0,0,1-45.868-21.853,1.885,1.885,0,0,1-.185-3.126c3.082-2.309,6.166-4.711,9.109-7.137a1.819,1.819,0,0,1,1.9-.256c96.229,43.917,200.41,43.917,295.5,0a1.812,1.812,0,0,1,1.924.233c2.944,2.426,6.027,4.851,9.132,7.16a1.884,1.884,0,0,1-.162,3.126,301.407,301.407,0,0,1-45.89,21.83,1.875,1.875,0,0,0-1,2.611,391.055,391.055,0,0,0,30.014,48.815,1.864,1.864,0,0,0,2.063.7A486.048,486.048,0,0,0,610.7,405.729a1.882,1.882,0,0,0,.765-1.352C623.729,277.594,590.933,167.465,524.531,69.836ZM222.491,337.58c-28.972,0-52.844-26.587-52.844-59.239S193.056,219.1,222.491,219.1c29.665,0,53.306,26.82,52.843,59.239C275.334,310.993,251.924,337.58,222.491,337.58Zm195.38,0c-28.971,0-52.843-26.587-52.843-59.239S388.437,219.1,417.871,219.1c29.667,0,53.307,26.82,52.844,59.239C470.715,310.993,447.538,337.58,417.871,337.58Z"/></svg>
+                </a>
+            </div>
+        </div>
+
+        <!-- About Card -->
+        <div class="ios-card fade-in delay-1">
+            <div class="section-header">
+                <i class="fas fa-user-circle"></i>
+                <span>ABOUT ME</span>
+            </div>
+            
+            <div class="info-list">
+                <div class="info-row">
+                    <i class="fas fa-briefcase"></i>
+                    <span>Funded Trader for The5ers - Topstep - FTMO</span>
+                </div>
+                <div class="info-row">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>TP.HCM, Việt Nam</span>
+                </div>
+                <a class="info-row info-link" href="tel:+84393302487" title="Gọi điện">
+                    <i class="fas fa-phone"></i>
+                    <span>039 330 2487</span>
+                    <i class="fas fa-chevron-right chevron"></i>
+                </a>
+                <a class="info-row info-link" href="mailto:Profile.haminhkhiem@gmail.com" title="Gửi email">
+                    <i class="fas fa-envelope"></i>
+                    <span>Profile.haminhkhiem@gmail.com</span>
+                    <i class="fas fa-chevron-right chevron"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Achievement Card (gold trading-card design) -->
+        <section class="achieve-card fade-in delay-2">
+            <div class="achieve-header">
+                <svg class="achieve-logo" viewBox="0 0 64 64" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="gold-a" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#FFF3C4"/>
+                            <stop offset="0.5" stop-color="#F3C64B"/>
+                            <stop offset="1" stop-color="#B47F16"/>
+                        </linearGradient>
+                        <linearGradient id="gold-b" x1="0" y1="1" x2="1" y2="0">
+                            <stop offset="0" stop-color="#8E6A1E"/>
+                            <stop offset="0.5" stop-color="#E9C35B"/>
+                            <stop offset="1" stop-color="#FFF3C4"/>
+                        </linearGradient>
+                    </defs>
+                    <rect x="10" y="10" width="44" height="44" rx="10" transform="rotate(45 32 32)" fill="#151022" stroke="url(#gold-a)" stroke-width="2.5"/>
+                    <path d="M18 40c-3-5-3-11 0-16" stroke="url(#gold-b)" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path d="M46 40c3-5 3-11 0-16" stroke="url(#gold-b)" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path fill="url(#gold-a)" d="M24 22h16v3.2c0 5-3 9-6.4 9.9v3h3.4c.9 0 1.6.7 1.6 1.6v1.3H25.4v-1.3c0-.9.7-1.6 1.6-1.6h3.4v-3c-3.4-.9-6.4-4.9-6.4-9.9V22z"/>
+                    <path d="M24 24h-3.2c-.2 3.8 1.4 6.4 4.4 7.4M40 24h3.2c.2 3.8-1.4 6.4-4.4 7.4" stroke="url(#gold-a)" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path fill="#FFF3C4" d="M32 12.8l1.2 2.4 2.6.4-1.9 1.9.5 2.6-2.4-1.3-2.4 1.3.5-2.6-1.9-1.9 2.6-.4z"/>
+                </svg>
+                <div>
+                    <div class="achieve-title">ACHIEVEMENTS</div>
+                    <div class="achieve-sub">Funded Trader • The5ers</div>
+                </div>
+            </div>
+
+            <div class="trophy-grid">
+                <button type="button" class="trophy-card" data-full="./assets/achievement-rrr.png" aria-label="Xem huy hiệu Fantastic RRR">
+                    <span class="trophy-inner">
+                        <img src="./assets/achievement-rrr.png" alt="Huy hiệu Fantastic RRR - The5ers" loading="lazy" decoding="async" draggable="false">
+                        <span class="trophy-tag">
+                            <strong>Fantastic RRR</strong>
+                            <span>The5ers • 01/2026</span>
+                        </span>
+                    </span>
+                </button>
+                <button type="button" class="trophy-card" data-full="./assets/achievement-funded.png" aria-label="Xem chứng nhận Funded Trader">
+                    <span class="trophy-inner">
+                        <img src="./assets/achievement-funded.png" alt="Funded Certificate - The5ers" loading="lazy" decoding="async" draggable="false">
+                        <span class="trophy-tag">
+                            <strong>Funded Certificate</strong>
+                            <span>The5ers • 01/2026</span>
+                        </span>
+                    </span>
+                </button>
+            </div>
+
+            <div class="achieve-hint">
+                <i class="fas fa-hand-pointer"></i> Chạm vào thẻ để xem chi tiết
+            </div>
+        </section>
+
+        <!-- Payment Card (neon scanner style) -->
+        <section class="pay-neon fade-in delay-3">
+            <div class="n-title">PAYMENT</div>
+
+            <div class="n-tabs" role="group" aria-label="Chọn kênh thanh toán">
+                <button type="button" class="n-tab on" aria-pressed="true">MB Bank</button>
+                <button type="button" class="n-tab" aria-pressed="false">MoMo</button>
+            </div>
+
+            <div class="n-frame">
+                <span class="n-corner" aria-hidden="true"></span>
+                <div class="payment-carousel" id="payment-carousel" tabindex="0" aria-label="Mã QR thanh toán">
+                    <div class="payment-track" id="payment-track">
+                        <div class="payment-slide" data-bank="MB Bank • VietQR" data-sub="NAPAS 247 • VietQR Global">
+                            <div class="qr-wrap" data-file="MB-Bank-VietQR.jpg" role="button" tabindex="0" aria-label="Hiện nút lưu mã QR MB Bank">
+                                <img src="./assets/qr-mb.jpg?v=2" alt="VietQR - MB Bank" width="1080" height="1121" decoding="async" draggable="false">
+                                <div class="qr-overlay">
+                                    <button type="button" class="qr-save-btn"><i class="fas fa-download"></i> Lưu ảnh QR</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="payment-slide" data-bank="MoMo • VietQR" data-sub="Ví điện tử MoMo • NAPAS 247">
+                            <div class="qr-wrap" data-file="MoMo-VietQR.jpg" role="button" tabindex="0" aria-label="Hiện nút lưu mã QR MoMo">
+                                <img src="./assets/qr-momo.jpg?v=2" alt="MoMo - VietQR" width="1080" height="1104" loading="lazy" decoding="async" draggable="false">
+                                <div class="qr-overlay">
+                                    <button type="button" class="qr-save-btn"><i class="fas fa-download"></i> Lưu ảnh QR</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="n-foot">
+                <div class="n-bank">
+                    <span id="pay-bank-name">MB Bank • VietQR</span>
+                    <small id="pay-bank-sub">NAPAS 247 • VietQR Global</small>
+                </div>
+                <div class="n-live"><i></i>SẴN SÀNG</div>
+            </div>
+            <div class="payment-hint">
+                <i class="fas fa-hand-pointer"></i> Lướt để xem mã khác • Chạm vào mã để lưu ảnh
+            </div>
+        </section>
+
+        <!-- Music Card (vinyl over full-bleed artwork) -->
+        <div class="music-card fade-in delay-4" id="music-card">
+            <div class="music-bg" aria-hidden="true">
+                <img src="https://i.ytimg.com/vi/9tDzvJMXDRw/hqdefault.jpg" alt="" loading="lazy" decoding="async" draggable="false">
+            </div>
+            <div class="music-in">
+                <div class="vinyl" aria-hidden="true">
+                    <span class="vinyl-label"></span>
+                    <span class="vinyl-hole"></span>
+                </div>
+                <div class="music-meta">
+                    <div class="music-label"><i class="fas fa-music"></i>MUSIC</div>
+                    <div class="music-title">Bad Boy</div>
+                    <div class="music-artist">Marwa Loud</div>
+                    <div class="music-progress" id="music-progress" role="slider" tabindex="0" aria-label="Tua bài hát" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                        <div class="music-track">
+                            <div class="music-progress-fill" id="music-fill"></div>
+                        </div>
+                    </div>
+                    <div class="music-time">
+                        <span id="music-cur">0:00</span>
+                        <span id="music-dur">--:--</span>
+                    </div>
+                </div>
+                <button type="button" class="music-btn" id="music-btn" aria-label="Phát / Tạm dừng">
+                    <i class="fas fa-play"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="footer fade-in delay-5">
+            © 2026 Ha Minh Khiem — All Rights Reserved<br>
+            <span style="font-size: 0.7rem; opacity: 0.85;">Crafted with passion &amp; lots of coffee ☕</span>
+        </div>
+
+    </div>
+
+    <!-- Lightbox for achievement zoom -->
+    <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Xem ảnh thành tựu">
+        <button type="button" class="lightbox-close" id="lightbox-close" aria-label="Đóng">
+            <i class="fas fa-times"></i>
+        </button>
+        <img id="lightbox-img" src="" alt="Ảnh thành tựu" draggable="false">
+    </div>
+
+    <!-- Off-screen YouTube iframe holder (audio source for the music card) -->
+    <div class="yt-hidden" aria-hidden="true"><div id="yt-audio"></div></div>
+
+    <script>
+        // ==================== iOS STYLE BACKGROUND (Light Canvas Particles) ====================
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d', { alpha: true });
+        
+        let particles = [];
+        let particleRaf = null;
+        let mouse = { x: 0, y: 0 };
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2.5 + 0.8;
+                this.speedX = (Math.random() - 0.5) * 0.4;
+                this.speedY = (Math.random() - 0.5) * 0.4;
+                this.opacity = Math.random() * 0.5 + 0.2;
+            }
+            
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                
+                // Gentle mouse attraction (subtle, no lag)
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                if (dist < 180 && dist > 0) {
+                    this.speedX += (dx / dist) * 0.015;
+                    this.speedY += (dy / dist) * 0.015;
+                }
+                
+                // Boundary bounce
+                if (this.x < 0 || this.x > canvas.width) this.speedX *= -0.8;
+                if (this.y < 0 || this.y > canvas.height) this.speedY *= -0.8;
+                
+                // Gentle speed limit
+                this.speedX = Math.max(Math.min(this.speedX, 0.8), -0.8);
+                this.speedY = Math.max(Math.min(this.speedY, 0.8), -0.8);
+            }
+            
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(0, 122, 255, ${this.opacity})`;
+                ctx.fill();
+            }
+        }
+        
+        function initParticles() {
+            particles = [];
+            // Fewer particles on phones: the connection pass is O(n²)
+            const isPhone = canvas.width <= 600;
+            const density = isPhone ? 26000 : 18000;
+            const cap = isPhone ? 40 : 65;
+            const count = Math.min(cap, Math.floor((canvas.width * canvas.height) / density));
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle());
+            }
+        }
+        
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            for (let i = 0; i < particles.length; i++) {
+                const p = particles[i];
+                p.update();
+                p.draw();
+                
+                // Connect nearby particles (very light)
+                for (let j = i + 1; j < particles.length; j++) {
+                    const p2 = particles[j];
+                    const dx = p.x - p2.x;
+                    const dy = p.y - p2.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist < 95) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(0, 122, 255, ${0.08 * (1 - dist / 95)})`;
+                        ctx.lineWidth = 0.6;
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            
+            particleRaf = requestAnimationFrame(animateParticles);
+        }
+
+        function setupBackground() {
+            resizeCanvas();
+            initParticles();
+            animateParticles();
+
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                initParticles();
+            });
+
+            // Don't burn CPU while the tab is in the background
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    if (particleRaf) {
+                        cancelAnimationFrame(particleRaf);
+                        particleRaf = null;
+                    }
+                } else if (!particleRaf) {
+                    animateParticles();
+                }
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                mouse.x = e.clientX;
+                mouse.y = e.clientY;
+            });
+            
+            // Touch support for mobile
+            document.addEventListener('touchmove', (e) => {
+                if (e.touches.length > 0) {
+                    mouse.x = e.touches[0].clientX;
+                    mouse.y = e.touches[0].clientY;
+                }
+            }, { passive: true });
+        }
+
+        // ==================== PAYMENT CAROUSEL (Swipe / Drag) ====================
+        function initPaymentCarousel() {
+            const carousel = document.getElementById('payment-carousel');
+            if (!carousel) return;
+
+            const tabs = document.querySelectorAll('.n-tab');
+            const slides = document.querySelectorAll('.payment-slide');
+            const bankName = document.getElementById('pay-bank-name');
+            const bankSub = document.getElementById('pay-bank-sub');
+            const payCard = document.querySelector('.pay-neon');
+            const slideCount = slides.length;
+
+            // Sync tabs + footer bank info while scrolling (touch swipe is native via scroll-snap)
+            function updateDots() {
+                const index = Math.round(carousel.scrollLeft / carousel.clientWidth);
+                tabs.forEach((t, i) => {
+                    t.classList.toggle('on', i === index);
+                    t.setAttribute('aria-pressed', i === index ? 'true' : 'false');
+                });
+                if (slides[index]) {
+                    if (bankName && slides[index].dataset.bank) bankName.textContent = slides[index].dataset.bank;
+                    if (bankSub && slides[index].dataset.sub) bankSub.textContent = slides[index].dataset.sub;
+                }
+                // MoMo QR in view -> soft-pink theme (animated via CSS variable transitions)
+                if (payCard) payCard.classList.toggle('momo', index === 1);
+            }
+            carousel.addEventListener('scroll', () => {
+                requestAnimationFrame(updateDots);
+            }, { passive: true });
+
+            // Mouse drag support (desktop)
+            let isDown = false;
+            let startX = 0;
+            let startScroll = 0;
+
+            carousel.addEventListener('mousedown', (e) => {
+                isDown = true;
+                startX = e.clientX;
+                startScroll = carousel.scrollLeft;
+                carousel.classList.add('dragging');
+                carousel.dataset.dragged = '0';
+                e.preventDefault();
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                carousel.scrollLeft = startScroll + (startX - e.clientX);
+            });
+
+            window.addEventListener('mouseup', (e) => {
+                if (!isDown) return;
+                isDown = false;
+                carousel.classList.remove('dragging');
+
+                // Snap to nearest / dragged-to slide
+                const dragged = startX - e.clientX;
+                carousel.dataset.dragged = Math.abs(dragged) > 10 ? '1' : '0';
+                let index = Math.round(startScroll / carousel.clientWidth);
+                if (dragged > 40) index++;
+                else if (dragged < -40) index--;
+                index = Math.max(0, Math.min(slideCount - 1, index));
+                carousel.scrollTo({ left: index * carousel.clientWidth, behavior: 'smooth' });
+            });
+
+            // Click on tabs to jump
+            tabs.forEach((tab, i) => {
+                tab.addEventListener('click', () => {
+                    carousel.scrollTo({ left: i * carousel.clientWidth, behavior: 'smooth' });
+                });
+            });
+        }
+
+        // ==================== QR TAP-TO-SAVE ====================
+        function initQrSave() {
+            const wraps = document.querySelectorAll('.qr-wrap');
+            if (!wraps.length) return;
+            const carousel = document.getElementById('payment-carousel');
+
+            function deactivateAll(except) {
+                wraps.forEach(w => {
+                    if (w !== except) w.classList.remove('active');
+                });
+            }
+
+            function download(url, filename) {
+                function viaLink(href) {
+                    const a = document.createElement('a');
+                    a.href = href;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                }
+                // Blob download forces "save" even on browsers that would
+                // navigate to the image; plain link is the fallback
+                fetch(url)
+                    .then(res => res.blob())
+                    .then(blob => {
+                        const objectUrl = URL.createObjectURL(blob);
+                        viaLink(objectUrl);
+                        setTimeout(() => URL.revokeObjectURL(objectUrl), 4000);
+                    })
+                    .catch(() => viaLink(url));
+            }
+
+            wraps.forEach(wrap => {
+                wrap.addEventListener('click', () => {
+                    // A drag on the desktop carousel also ends in a click — ignore it
+                    if (carousel && carousel.dataset.dragged === '1') return;
+                    const on = wrap.classList.toggle('active');
+                    if (on) deactivateAll(wrap);
+                });
+
+                wrap.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        wrap.click();
+                    }
+                });
+
+                const saveBtn = wrap.querySelector('.qr-save-btn');
+                saveBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const img = wrap.querySelector('img');
+                    download(img.currentSrc || img.src, wrap.dataset.file || 'qr.jpg');
+                    const icon = saveBtn.querySelector('i');
+                    icon.className = 'fas fa-check';
+                    setTimeout(() => {
+                        icon.className = 'fas fa-download';
+                        wrap.classList.remove('active');
+                    }, 1400);
+                });
+            });
+
+            // Tapping anywhere else hides the save overlay
+            document.addEventListener('click', (e) => {
+                let inside = false;
+                wraps.forEach(w => { if (w.contains(e.target)) inside = true; });
+                if (!inside) deactivateAll(null);
+            });
+        }
+
+        // ==================== BACKGROUND PARALLAX ====================
+        // Slides the oversized background as the page scrolls so the full photo is
+        // revealed, using transform on the compositor thread (no scroll jank).
+        function initParallax() {
+            const bg = document.querySelector('.bg-image');
+            if (!bg) return;
+
+            // Modern browsers run the parallax as a CSS scroll-driven animation
+            // on the compositor — no JS needed there
+            if (window.CSS && CSS.supports && CSS.supports('animation-timeline: scroll()')) return;
+
+            // Fallback: JS parallax with eased catch-up so momentum scrolling and
+            // URL-bar height changes never produce a visible jump
+            let vw = window.innerWidth;
+            let vh = window.innerHeight;
+            let target = 0;
+            let current = 0;
+            let rafId = null;
+
+            function computeTarget() {
+                const max = document.documentElement.scrollHeight - vh;
+                const extra = bg.offsetHeight - vh;
+                target = (max > 0 && extra > 0)
+                    ? Math.min(1, Math.max(0, window.scrollY / max)) * extra
+                    : 0;
+            }
+
+            function loop() {
+                current += (target - current) * 0.14;
+                if (Math.abs(target - current) < 0.4) {
+                    current = target;
+                    rafId = null;
+                } else {
+                    rafId = requestAnimationFrame(loop);
+                }
+                bg.style.transform = 'translate3d(0, ' + (-current) + 'px, 0)';
+            }
+
+            function kick() {
+                computeTarget();
+                if (!rafId) rafId = requestAnimationFrame(loop);
+            }
+
+            window.addEventListener('scroll', kick, { passive: true });
+
+            window.addEventListener('resize', () => {
+                // Ignore mobile URL-bar collapse/expand (small height-only changes);
+                // react only to orientation flips or real window resizes
+                const widthChanged = window.innerWidth !== vw;
+                const bigHeightChange = Math.abs(window.innerHeight - vh) > 150;
+                if (widthChanged || bigHeightChange) {
+                    vw = window.innerWidth;
+                    vh = window.innerHeight;
+                    kick();
+                }
+            });
+
+            kick();
+        }
+
+        // ==================== ACHIEVEMENT LIGHTBOX ====================
+        function initAchievements() {
+            const lightbox = document.getElementById('lightbox');
+            if (!lightbox) return;
+            const imgEl = document.getElementById('lightbox-img');
+            const closeBtn = document.getElementById('lightbox-close');
+
+            let lastTrigger = null;
+
+            function open(src, alt, trigger) {
+                imgEl.src = src;
+                imgEl.alt = alt;
+                lastTrigger = trigger || null;
+                lightbox.classList.add('open');
+                closeBtn.focus();
+            }
+
+            function close() {
+                if (!lightbox.classList.contains('open')) return;
+                lightbox.classList.remove('open');
+                if (lastTrigger) {
+                    lastTrigger.focus();
+                    lastTrigger = null;
+                }
+            }
+
+            document.querySelectorAll('.trophy-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const img = card.querySelector('img');
+                    open(card.dataset.full || img.src, img.alt, card);
+                });
+            });
+
+            lightbox.addEventListener('click', (e) => {
+                if (e.target !== imgEl) close();
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (!lightbox.classList.contains('open')) return;
+                if (e.key === 'Escape') close();
+                // The close button is the dialog's only focusable element — keep focus on it
+                else if (e.key === 'Tab') {
+                    e.preventDefault();
+                    closeBtn.focus();
+                }
+            });
+        }
+
+        // ==================== MUSIC PLAYER (audio via hidden YouTube iframe) ====================
+        function initMusicPlayer() {
+            const card = document.getElementById('music-card');
+            if (!card) return;
+
+            // One of two tracks is picked at random on each visit (50/50)
+            const TRACKS = [
+                { id: '9tDzvJMXDRw', title: 'Bad Boy', artist: 'Marwa Loud' },
+                { id: 'TfkP5ubz1z4', title: 'Despacito', artist: 'Luis Fonsi & Daddy Yankee ft. Justin Bieber' }
+            ];
+            const track = TRACKS[Math.random() < 0.5 ? 0 : 1];
+            const VIDEO_ID = track.id;
+
+            const artImg = card.querySelector('.music-bg img');
+            artImg.src = 'https://i.ytimg.com/vi/' + VIDEO_ID + '/hqdefault.jpg';
+            card.querySelector('.music-title').textContent = track.title;
+            card.querySelector('.music-artist').textContent = track.artist;
+            const btn = document.getElementById('music-btn');
+            const btnIcon = btn.querySelector('i');
+            const fill = document.getElementById('music-fill');
+            const progress = document.getElementById('music-progress');
+            const curEl = document.getElementById('music-cur');
+            const durEl = document.getElementById('music-dur');
+
+            let player = null;
+            let ready = false;
+            let failed = false;
+            let pendingPlay = false;
+            let timer = null;
+            let watchdog = null;
+
+            function fmt(s) {
+                s = Math.max(0, Math.floor(s || 0));
+                return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+            }
+
+            function tick() {
+                if (!ready || !player || typeof player.getCurrentTime !== 'function') return;
+                const dur = player.getDuration() || 0;
+                const cur = player.getCurrentTime() || 0;
+                if (dur > 0) {
+                    fill.style.width = (cur / dur * 100) + '%';
+                    durEl.textContent = fmt(dur);
+                    progress.setAttribute('aria-valuenow', String(Math.round(cur / dur * 100)));
+                }
+                curEl.textContent = fmt(cur);
+            }
+
+            function setPlaying(on) {
+                if (failed) return;
+                card.classList.toggle('playing', on);
+                btnIcon.className = on ? 'fas fa-pause' : 'fas fa-play';
+                if (on) {
+                    if (!timer) timer = setInterval(tick, 250);
+                } else if (timer) {
+                    clearInterval(timer);
+                    timer = null;
+                }
+                tick();
+            }
+
+            // Playback can't work anymore — turn the button into an open-on-YouTube link
+            function markFailed() {
+                failed = true;
+                pendingPlay = false;
+                if (timer) { clearInterval(timer); timer = null; }
+                card.classList.remove('playing');
+                btnIcon.className = 'fas fa-arrow-up-right-from-square';
+                btn.setAttribute('aria-label', 'Mở trên YouTube');
+            }
+
+            function createPlayer() {
+                player = new YT.Player('yt-audio', {
+                    videoId: VIDEO_ID,
+                    playerVars: { controls: 0, disablekb: 1, playsinline: 1, rel: 0, iv_load_policy: 3 },
+                    events: {
+                        onReady: () => {
+                            ready = true;
+                            failed = false;
+                            if (watchdog) { clearTimeout(watchdog); watchdog = null; }
+                            // Restore the default control UI — a late recovery after the
+                            // watchdog fired may have left the external-link icon behind
+                            btnIcon.className = 'fas fa-play';
+                            btn.setAttribute('aria-label', 'Phát / Tạm dừng');
+                            tick();
+                            if (pendingPlay) {
+                                pendingPlay = false;
+                                player.playVideo();
+                            }
+                        },
+                        onStateChange: (e) => {
+                            if (e.data === YT.PlayerState.PLAYING) setPlaying(true);
+                            else if (e.data === YT.PlayerState.PAUSED) setPlaying(false);
+                            else if (e.data === YT.PlayerState.ENDED) {
+                                setPlaying(false);
+                                fill.style.width = '0%';
+                                curEl.textContent = '0:00';
+                            }
+                        },
+                        onError: markFailed
+                    }
+                });
+            }
+
+            // The IFrame API is heavy (~1MB); load it only after the page has
+            // finished rendering so it never competes with first paint on mobile
+            let apiRequested = false;
+
+            function loadApi() {
+                if (apiRequested) return;
+                apiRequested = true;
+                // If the API never becomes ready (blocked network), fall back to opening
+                // YouTube. Generous deadline: slow 3G can take >8s; onReady cancels it.
+                watchdog = setTimeout(() => { if (!ready) markFailed(); }, 15000);
+                if (window.YT && window.YT.Player) {
+                    createPlayer();
+                    return;
+                }
+                const prev = window.onYouTubeIframeAPIReady;
+                window.onYouTubeIframeAPIReady = () => {
+                    if (prev) prev();
+                    createPlayer();
+                };
+                const tag = document.createElement('script');
+                tag.src = 'https://www.youtube.com/iframe_api';
+                tag.onerror = markFailed;
+                document.head.appendChild(tag);
+            }
+
+            if (document.readyState === 'complete') {
+                setTimeout(loadApi, 1200);
+            } else {
+                window.addEventListener('load', () => setTimeout(loadApi, 1200));
+            }
+
+            // Warm the API well before the user can tap play, so the first tap
+            // starts playback inside its own gesture (iOS Safari requires this):
+            // as soon as the card approaches the viewport, or on first interaction
+            if ('IntersectionObserver' in window) {
+                const io = new IntersectionObserver((entries) => {
+                    if (entries.some(en => en.isIntersecting)) {
+                        io.disconnect();
+                        loadApi();
+                    }
+                }, { rootMargin: '600px' });
+                io.observe(card);
+            }
+            document.addEventListener('pointerdown', loadApi, { once: true, passive: true });
+            document.addEventListener('touchstart', loadApi, { once: true, passive: true });
+
+            btn.addEventListener('click', () => {
+                if (failed) {
+                    window.open('https://www.youtube.com/watch?v=' + VIDEO_ID, '_blank', 'noopener');
+                    return;
+                }
+                if (!ready) {
+                    // Remember the intent and show feedback; onReady will start playback
+                    pendingPlay = true;
+                    btnIcon.className = 'fas fa-spinner fa-spin';
+                    loadApi();
+                    return;
+                }
+                const st = player.getPlayerState();
+                if (st === YT.PlayerState.PLAYING || st === YT.PlayerState.BUFFERING) {
+                    btnIcon.className = 'fas fa-play';
+                    player.pauseVideo();
+                } else {
+                    btnIcon.className = 'fas fa-pause';
+                    player.playVideo();
+                }
+            });
+
+            progress.addEventListener('click', (e) => {
+                if (!ready || failed) return;
+                const dur = player.getDuration() || 0;
+                if (!dur) return;
+                const rect = progress.getBoundingClientRect();
+                const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+                player.seekTo(dur * ratio, true);
+                fill.style.width = (ratio * 100) + '%';
+                curEl.textContent = fmt(dur * ratio);
+            });
+
+            progress.addEventListener('keydown', (e) => {
+                if (!ready || failed) return;
+                const dur = player.getDuration() || 0;
+                if (!dur) return;
+                let delta = 0;
+                if (e.key === 'ArrowRight' || e.key === 'ArrowUp') delta = 5;
+                else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') delta = -5;
+                else return;
+                e.preventDefault();
+                const target = Math.min(dur, Math.max(0, (player.getCurrentTime() || 0) + delta));
+                player.seekTo(target, true);
+                fill.style.width = (target / dur * 100) + '%';
+                curEl.textContent = fmt(target);
+            });
+        }
+
+        // ==================== CONTENT PROTECTION ====================
+        function initProtection() {
+            // Right-click / long-press context menu (save image, copy...)
+            document.addEventListener('contextmenu', (e) => e.preventDefault());
+
+            // Copy / cut text
+            document.addEventListener('copy', (e) => e.preventDefault());
+            document.addEventListener('cut', (e) => e.preventDefault());
+
+            // Drag images out of the page
+            document.addEventListener('dragstart', (e) => e.preventDefault());
+
+            // Pinch zoom on iOS Safari (ignores user-scalable=no)
+            document.addEventListener('gesturestart', (e) => e.preventDefault());
+            document.addEventListener('gesturechange', (e) => e.preventDefault());
+
+            // Pinch on other mobile browsers is blocked by `touch-action: pan-y`
+            // on <body> — no JS listener needed, so scrolling never waits on JS
+        }
+
+        // ==================== INITIALIZE EVERYTHING ====================
+        function initAll() {
+            initProtection();
+            // Background
+            setupBackground();
+            initParallax();
+
+            // Payment carousel
+            initPaymentCarousel();
+
+            // QR tap-to-save overlay
+            initQrSave();
+
+            // Achievement lightbox
+            initAchievements();
+
+            // Music mini player
+            initMusicPlayer();
+
+            // Add subtle tilt to cards on mouse move (iOS-like depth)
+            // Only on real pointer devices, so touch-synthesized events can't stick a tilt
+            const cards = window.matchMedia('(hover: hover) and (pointer: fine)').matches
+                ? document.querySelectorAll('.ios-card') : [];
+            cards.forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    if (e.target.closest('.payment-carousel')) return;
+                    if (document.querySelector('.payment-carousel.dragging')) return;
+                    const rect = card.getBoundingClientRect();
+                    const x = ((e.clientX - rect.left) / rect.width) - 0.5;
+                    const y = ((e.clientY - rect.top) / rect.height) - 0.5;
+                    
+                    const rotX = y * -6;
+                    const rotY = x * 8;
+                    
+                    card.style.transform = `perspective(900px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-6px)`;
+                });
+                
+                card.addEventListener('mouseleave', () => {
+                    card.style.transition = 'all 0.5s cubic-bezier(0.23, 1, 0.32, 1)';
+                    card.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0)';
+                    
+                    setTimeout(() => {
+                        card.style.transition = 'all 0.4s cubic-bezier(0.23, 1, 0.32, 1)';
+                    }, 500);
+                });
+            });
+            
+            // Easter egg: Click avatar for fun
+            const avatar = document.querySelector('.avatar-img');
+            if (avatar) {
+                avatar.addEventListener('click', () => {
+                    avatar.style.transition = 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                    avatar.style.transform = 'scale(0.85) rotate(12deg)';
+                    
+                    setTimeout(() => {
+                        avatar.style.transform = 'scale(1.05) rotate(-8deg)';
+                    }, 280);
+                    
+                    setTimeout(() => {
+                        avatar.style.transition = 'transform 0.5s cubic-bezier(0.23, 1, 0.32, 1)';
+                        avatar.style.transform = 'scale(1) rotate(0)';
+                    }, 720);
+                });
+            }
+            
+            // Keyboard accessibility
+            document.addEventListener('keydown', (e) => {
+                if (e.key === '/' && document.activeElement.tagName === 'BODY') {
+                    e.preventDefault();
+                    const firstSocial = document.querySelector('.social-item');
+                    if (firstSocial) firstSocial.focus();
+                }
+            });
+            
+            console.log('%c[HA MINH KHIEM] iOS Profile initialized successfully ✨', 'color:#007AFF; font-size:9px');
+        }
+        
+        // Boot
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initAll);
+        } else {
+            initAll();
+        }
+        
+        // Expose for debugging
+        window.Profile = { version: '3.0.0-iOS', author: 'HA MINH KHIEM' };
+    </script>
+</body>
+</html>
