@@ -33,9 +33,27 @@
             --glass-bg: rgba(30, 32, 40, 0.36);
             --glass-border: rgba(255, 255, 255, 0.16);
             --glass-highlight: rgba(255, 255, 255, 0.25);
+            /* Liquid-glass tuning (editable) */
+            --glass-blur: 32px;
+            --glass-sat: 190%;
+            --glass-tint: 0, 122, 255;      /* refraction tint (RGB) */
+            --glass-specular: rgba(255, 255, 255, 0.9);
+            --glass-radius: 32px;
             --ios-border: rgba(255, 255, 255, 0.1);
             --ios-blue: #007AFF;
             --ios-gray: #A6A6AD;
+            /* ABOUT ME card (editable) */
+            --about-badge-size: 38px;
+            --about-radius-row: 16px;
+            --about-gap: 10px;
+            /* Brand app-icon gradient pairs (top -> bottom) */
+            --app-stocks-a: #4C82FF;  --app-stocks-b: #1E53E5;  /* TradingView (blue) */
+            --app-maps-a:   #45C16B;  --app-maps-b:   #1E8E3E;  /* Google Maps (green) */
+            --app-phone-a:  #5BE35A;  --app-phone-b:  #17B93B;  /* Phone (green) */
+            --app-mail-a:   #F05545;  --app-mail-b:   #C5221F;  /* Gmail (red) */
+            /* ABOUT ME header badge (user) */
+            --about-icon-a: #3AA0FF;
+            --about-icon-b: #0A63FF;
         }
 
         * {
@@ -132,14 +150,21 @@
         }
 
         /* ==================== LIQUID GLASS (upgraded) ==================== */
+        /* Registered so the pointer glare interpolates smoothly instead of snapping */
+        @property --gx { syntax: '<percentage>'; inherits: true; initial-value: 22%; }
+        @property --gy { syntax: '<percentage>'; inherits: true; initial-value: 6%; }
+        @property --gi { syntax: '<number>'; inherits: true; initial-value: 0.10; }
+
         .ios-card {
             position: relative;
             isolation: isolate;
-            /* Layered inner sheen over the frosted glass tint for a wetter look */
+            /* Layered inner sheen + faint chromatic refraction for a wetter look */
             background:
+                radial-gradient(140% 120% at 12% -8%, rgba(255, 255, 255, 0.10) 0%, transparent 40%),
+                radial-gradient(130% 120% at 100% 108%, rgba(var(--glass-tint), 0.10) 0%, transparent 46%),
                 linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.015) 40%, rgba(255, 255, 255, 0) 72%),
                 var(--glass-bg);
-            border-radius: 32px;
+            border-radius: var(--glass-radius);
             padding: 28px 26px;
             margin-bottom: 18px;
             border: 1px solid var(--glass-border);
@@ -149,12 +174,15 @@
                 inset 0 1px 0 var(--glass-highlight),
                 inset 0 -1px 1px rgba(0, 0, 0, 0.25),
                 inset 0 0 30px rgba(255, 255, 255, 0.04);
-            backdrop-filter: blur(30px) saturate(185%);
-            -webkit-backdrop-filter: blur(30px) saturate(185%);
+            backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+            -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
             transition:
-                transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
-                box-shadow 0.4s cubic-bezier(0.23, 1, 0.32, 1),
-                border-color 0.4s ease;
+                transform 0.5s cubic-bezier(0.23, 1, 0.32, 1),
+                box-shadow 0.5s cubic-bezier(0.23, 1, 0.32, 1),
+                border-color 0.4s ease,
+                --gx 0.25s ease-out,
+                --gy 0.25s ease-out,
+                --gi 0.4s ease-out;
         }
 
         /* Thin gradient rim-light around each card (masked ring technique) */
@@ -165,10 +193,10 @@
             border-radius: inherit;
             padding: 1px;
             background: linear-gradient(150deg,
-                rgba(255, 255, 255, 0.5),
-                rgba(255, 255, 255, 0.06) 30%,
-                transparent 55%,
-                rgba(0, 122, 255, 0.16) 100%);
+                var(--glass-specular),
+                rgba(255, 255, 255, 0.10) 26%,
+                transparent 52%,
+                rgba(var(--glass-tint), 0.22) 100%);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -177,20 +205,21 @@
             z-index: 0;
         }
 
-        /* Liquid-glass specular sheen + top-left highlight */
+        /* Liquid-glass specular: crisp top-edge highlight + soft body glare + refracted depth */
         .ios-card::after {
             content: '';
             position: absolute;
             inset: 0;
             border-radius: inherit;
             background:
-                radial-gradient(120% 80% at 15% -10%, rgba(255, 255, 255, 0.18) 0%, transparent 42%),
-                linear-gradient(165deg,
-                    rgba(255, 255, 255, 0.16) 0%,
-                    rgba(255, 255, 255, 0.045) 28%,
-                    transparent 46%,
-                    transparent 82%,
-                    rgba(255, 255, 255, 0.06) 100%);
+                /* bright, thin glare hugging the top edge (the "wet" catch-light) */
+                radial-gradient(150% 42% at 50% -4%, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.06) 30%, transparent 62%),
+                /* soft diffuse sheen that follows the pointer (falls back to upper-left) */
+                radial-gradient(70% 70% at var(--gx, 22%) var(--gy, 6%), rgba(255, 255, 255, var(--gi, 0.10)) 0%, transparent 55%),
+                /* colour refraction pooling toward the lower-right */
+                radial-gradient(95% 75% at 106% 110%, rgba(var(--glass-tint), 0.14) 0%, transparent 52%),
+                /* gentle darkening at the base for volume */
+                linear-gradient(180deg, transparent 62%, rgba(0, 0, 0, 0.10) 100%);
             pointer-events: none;
             z-index: 0;
         }
@@ -202,12 +231,13 @@
 
         .ios-card:hover {
             transform: translateY(-6px);
-            border-color: rgba(255, 255, 255, 0.24);
+            border-color: rgba(255, 255, 255, 0.28);
             box-shadow:
                 0 26px 66px rgba(0, 0, 0, 0.6),
                 0 2px 8px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.35),
-                inset 0 0 34px rgba(255, 255, 255, 0.06);
+                0 0 40px rgba(var(--glass-tint), 0.10),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4),
+                inset 0 0 34px rgba(255, 255, 255, 0.07);
         }
 
         .profile-header {
@@ -425,6 +455,16 @@
             .verified-badge.tapped,
             .verified-badge.intro { animation: none; }
             .verified-ripple, .verified-spark { display: none; }
+            .section-icon { animation: none; opacity: 1; transform: none; }
+            .section-icon::after { animation: none; display: none; }
+            .info-row { animation: none; opacity: 1; }
+            .row-media { transform: none; }
+            .info-row:hover .row-media { transform: none; }
+            .info-row:hover,
+            .info-row:active .info-badge,
+            .info-row:hover .info-badge,
+            .info-link:hover .chevron,
+            a.info-link:active { transform: none; }
         }
 
         .title {
@@ -660,41 +700,259 @@
             font-size: 1.05rem;
         }
 
+        /* ---- ABOUT ME header badge (user, app-icon style) ---- */
+        .section-icon {
+            position: relative;
+            flex: none;
+            width: 1.6rem;
+            height: 1.6rem;
+            display: grid;
+            place-items: center;
+            border-radius: 30%;
+            overflow: hidden;
+            background: linear-gradient(160deg, var(--about-icon-a) 0%, var(--about-icon-b) 100%);
+            box-shadow:
+                0 5px 14px color-mix(in srgb, var(--about-icon-b) 50%, transparent),
+                inset 0 1px 0 rgba(255, 255, 255, 0.45),
+                inset 0 0 0 0.5px rgba(255, 255, 255, 0.18);
+            animation: section-icon-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        /* gloss */
+        .section-icon::before {
+            content: "";
+            position: absolute;
+            inset: 1px 1px 42% 1px;
+            border-radius: 30% 30% 45% 45%;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0));
+            pointer-events: none;
+        }
+
+        /* shimmer sweep */
+        .section-icon::after {
+            content: "";
+            position: absolute;
+            top: -30%;
+            left: -60%;
+            width: 45%;
+            height: 160%;
+            background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.75), transparent);
+            transform: skewX(-18deg);
+            animation: section-icon-shine 3.4s ease-in-out infinite;
+            animation-delay: 1s;
+            pointer-events: none;
+        }
+
+        .section-icon-svg {
+            position: relative;
+            width: 62%;
+            height: 62%;
+            filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.28));
+        }
+
+        @keyframes section-icon-in {
+            from { opacity: 0; transform: scale(0.4) rotate(-12deg); }
+            to   { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+
+        @keyframes section-icon-shine {
+            0%, 100% { left: -60%; }
+            18%, 82% { left: 130%; }
+        }
+
+        /* ---- Info list ---- */
         .info-list {
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 8px;
         }
 
         .info-row {
+            --row-tint: var(--ios-blue);
+            --c1: var(--ios-blue);
+            --c2: var(--ios-blue);
+            position: relative;
+            overflow: hidden;
+            isolation: isolate;
             display: flex;
             align-items: center;
-            padding: 13px 16px;
+            gap: 12px;
+            padding: 11px 14px;
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.09);
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
-            border-radius: 16px;
-            margin-bottom: 4px;
-            transition: background 0.2s ease, border-color 0.2s ease;
+            border-radius: var(--about-radius-row);
+            transition:
+                background 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                border-color 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            /* staggered entrance */
+            opacity: 0;
+            animation: info-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            animation-delay: calc(var(--i, 0) * 90ms + 200ms);
+            will-change: transform, opacity;
+        }
+        .info-row:nth-child(1) { --i: 0; }
+        .info-row:nth-child(2) { --i: 1; }
+        .info-row:nth-child(3) { --i: 2; }
+        .info-row:nth-child(4) { --i: 3; }
+
+        @keyframes info-in {
+            from { opacity: 0; transform: translateY(12px) scale(0.98); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         .info-row:hover {
             background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.16);
+            border-color: color-mix(in srgb, var(--row-tint) 42%, transparent);
+            transform: translateY(-1px);
         }
 
-        .info-row i {
-            width: 22px;
-            color: #007AFF;
-            margin-right: 14px;
-            font-size: 1rem;
+        /* Decorative photo + color-dip gradient inside each row */
+        .row-media {
+            position: absolute;
+            inset: 0 0 0 auto;
+            width: 68%;
+            z-index: 0;
+            background-image: var(--img);
+            background-size: cover;
+            background-position: center;
+            /* fade the photo into the card toward the left */
+            -webkit-mask-image: linear-gradient(to left, #000 12%, transparent 88%);
+            mask-image: linear-gradient(to left, #000 12%, transparent 88%);
+            opacity: 0.5;
+            transform: scale(1.02);
+            transition: opacity 0.45s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
-        .info-row span {
-            font-size: clamp(0.6rem, 3vw, 0.78rem);
-            font-weight: 500;
+        /* the "dốc màu" — color gradient dip over the photo */
+        .row-media::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                105deg,
+                var(--c2) 0%,
+                color-mix(in srgb, var(--c2) 55%, transparent) 42%,
+                color-mix(in srgb, var(--c1) 25%, transparent) 72%,
+                transparent 100%);
+        }
+
+        .info-row:hover .row-media {
+            opacity: 0.72;
+            transform: scale(1.08);
+        }
+
+        /* image <-> video layers (Funded Trader & Location) */
+        .row-media-img,
+        .row-media-vid {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        .row-media-vid {
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .info-row.playing .row-media-vid { opacity: 1; }
+        .info-row.playing .row-media-img { opacity: 0; transition: opacity 0.4s ease; }
+        .info-row.playing .row-media { opacity: 0.92; }
+
+        .info-clip { cursor: pointer; }
+
+        .info-clip:focus-visible {
+            outline: 2px solid var(--row-tint);
+            outline-offset: 2px;
+        }
+
+        /* subtle "playing" hint on the badge */
+        .info-row.playing .info-badge {
+            box-shadow:
+                0 0 0 2px color-mix(in srgb, var(--row-tint) 70%, transparent),
+                0 6px 16px color-mix(in srgb, var(--c2) 60%, transparent),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+
+        /* keep content above the media layer */
+        .info-badge,
+        .info-text,
+        .info-link .chevron { position: relative; z-index: 1; }
+
+        .info-badge {
+            flex: none;
+            position: relative;
+            width: var(--about-badge-size);
+            height: var(--about-badge-size);
+            display: grid;
+            place-items: center;
+            border-radius: 30%;
+            background: linear-gradient(160deg, var(--c1) 0%, var(--c2) 100%);
+            box-shadow:
+                0 5px 14px color-mix(in srgb, var(--c2) 50%, transparent),
+                inset 0 1px 0 rgba(255, 255, 255, 0.45),
+                inset 0 0 0 0.5px rgba(255, 255, 255, 0.18);
+            transition:
+                transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.4s ease;
+        }
+
+        /* glossy top highlight (iOS app-icon gloss) */
+        .info-badge::before {
+            content: "";
+            position: absolute;
+            inset: 1px 1px 42% 1px;
+            border-radius: 30% 30% 45% 45%;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0));
+            pointer-events: none;
+        }
+
+        .info-badge svg {
+            position: relative;
+            width: 58%;
+            height: 58%;
+            filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.28));
+        }
+
+        .info-row:hover .info-badge {
+            transform: scale(1.1) rotate(-4deg);
+            box-shadow:
+                0 8px 20px color-mix(in srgb, var(--c2) 65%, transparent),
+                inset 0 1px 0 rgba(255, 255, 255, 0.55),
+                inset 0 0 0 0.5px rgba(255, 255, 255, 0.25);
+        }
+
+        .info-row:active .info-badge { transform: scale(0.96); }
+
+        .info-text {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            min-width: 0;
+        }
+
+        .info-value {
+            font-size: clamp(0.72rem, 3vw, 0.82rem);
+            font-weight: 600;
             color: #fff;
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+        }
+
+        .info-meta {
+            font-size: 0.64rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.82);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
         }
 
         a.info-link {
@@ -703,17 +961,23 @@
             cursor: pointer;
         }
 
+        a.info-link:active { transform: scale(0.985); }
+
         a.info-link:focus-visible {
-            outline: 2px solid var(--ios-blue);
+            outline: 2px solid var(--row-tint);
             outline-offset: 2px;
         }
 
         .info-link .chevron {
             margin-left: auto;
-            margin-right: 0;
-            width: auto;
             color: var(--ios-gray);
             font-size: 0.75rem;
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
+
+        .info-link:hover .chevron {
+            transform: translateX(3px);
+            color: var(--row-tint);
         }
 
         /* ==================== PAYMENT (neon scanner style) ==================== */
@@ -1582,27 +1846,70 @@
         <!-- About Card -->
         <div class="ios-card fade-in delay-1">
             <div class="section-header">
-                <i class="fas fa-user-circle" aria-hidden="true"></i>
+                <span class="section-icon" aria-hidden="true">
+                    <svg class="section-icon-svg" viewBox="0 0 24 24" fill="#fff">
+                        <circle cx="12" cy="8.4" r="3.9"/>
+                        <path d="M4.6 19.2c0-3.9 3.3-6.6 7.4-6.6s7.4 2.7 7.4 6.6c0 .8-.6 1.4-1.4 1.4H6c-.8 0-1.4-.6-1.4-1.4Z"/>
+                    </svg>
+                </span>
                 <span>ABOUT ME</span>
             </div>
 
             <div class="info-list">
-                <div class="info-row">
-                    <i class="fas fa-briefcase" aria-hidden="true"></i>
-                    <span>Funded Trader for The5ers - Topstep - FTMO</span>
+                <div class="info-row info-clip" role="button" tabindex="0" aria-pressed="false" aria-label="Funded Trader — chạm để phát video" style="--c1: var(--app-stocks-a); --c2: var(--app-stocks-b); --row-tint: var(--app-stocks-b)">
+                    <span class="row-media" aria-hidden="true">
+                        <img class="row-media-img" src="https://assets.mixkit.co/videos/46990/46990-thumb-720-0.jpg" alt="" loading="lazy" decoding="async" draggable="false">
+                        <video class="row-media-vid" muted loop playsinline preload="none" poster="https://assets.mixkit.co/videos/46990/46990-thumb-720-0.jpg" data-src="https://assets.mixkit.co/videos/46990/46990-720.mp4"></video>
+                    </span>
+                    <span class="info-badge" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="#fff">
+                            <path d="M15.8654 8.2789c0 1.3541-1.0978 2.4519-2.452 2.4519-1.354 0-2.4519-1.0978-2.4519-2.452 0-1.354 1.0978-2.4518 2.452-2.4518 1.3541 0 2.4519 1.0977 2.4519 2.4519zM9.75 6H0v4.9038h4.8462v7.2692H9.75Zm8.5962 0H24l-5.1058 12.173h-5.6538z"/>
+                        </svg>
+                    </span>
+                    <span class="info-text">
+                        <span class="info-value">Funded Trader</span>
+                        <span class="info-meta">The5ers • Topstep • FTMO</span>
+                    </span>
                 </div>
-                <div class="info-row">
-                    <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
-                    <span>TP.HCM, Việt Nam</span>
+                <div class="info-row info-clip" role="button" tabindex="0" aria-pressed="false" aria-label="TP.HCM — chạm để phát video" style="--c1: var(--app-maps-a); --c2: var(--app-maps-b); --row-tint: var(--app-maps-b)">
+                    <span class="row-media" aria-hidden="true">
+                        <img class="row-media-img" src="https://assets.mixkit.co/videos/20203/20203-thumb-720-0.jpg" alt="" loading="lazy" decoding="async" draggable="false">
+                        <video class="row-media-vid" muted loop playsinline preload="none" poster="https://assets.mixkit.co/videos/20203/20203-thumb-720-0.jpg" data-src="https://assets.mixkit.co/videos/20203/20203-720.mp4"></video>
+                    </span>
+                    <span class="info-badge" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="#fff">
+                            <path d="M19.527 4.799c1.212 2.608.937 5.678-.405 8.173-1.101 2.047-2.744 3.74-4.098 5.614-.619.858-1.244 1.75-1.669 2.727-.141.325-.263.658-.383.992-.121.333-.224.673-.34 1.008-.109.314-.236.684-.627.687h-.007c-.466-.001-.579-.53-.695-.887-.284-.874-.581-1.713-1.019-2.525-.51-.944-1.145-1.817-1.79-2.671L19.527 4.799zM8.545 7.705l-3.959 4.707c.724 1.54 1.821 2.863 2.871 4.18.247.31.494.622.737.936l4.984-5.925-.029.01c-1.741.601-3.691-.291-4.392-1.987a3.377 3.377 0 0 1-.209-.716c-.063-.437-.077-.761-.004-1.198l.001-.007zM5.492 3.149l-.003.004c-1.947 2.466-2.281 5.88-1.117 8.77l4.785-5.689-.058-.05-3.607-3.035zM14.661.436l-3.838 4.563a.295.295 0 0 1 .027-.01c1.6-.551 3.403.15 4.22 1.626.176.319.323.683.377 1.045.068.446.085.773.012 1.22l-.003.016 3.836-4.561A8.382 8.382 0 0 0 14.67.439l-.009-.003zM9.466 5.868L14.162.285l-.047-.012A8.31 8.31 0 0 0 11.986 0a8.439 8.439 0 0 0-6.169 2.766l-.016.018 3.665 3.084z"/>
+                        </svg>
+                    </span>
+                    <span class="info-text">
+                        <span class="info-value">TP.HCM, Việt Nam</span>
+                        <span class="info-meta">Múi giờ GMT+7</span>
+                    </span>
                 </div>
-                <a class="info-row info-link" href="tel:+84363655604" title="Gọi điện" aria-label="Gọi 036 365 5604">
-                    <i class="fas fa-phone" aria-hidden="true"></i>
-                    <span>036 365 5604</span>
+                <a class="info-row info-link" href="tel:+84363655604" style="--c1: var(--app-phone-a); --c2: var(--app-phone-b); --row-tint: var(--app-phone-b)" title="Gọi điện" aria-label="Gọi 036 365 5604">
+                    <span class="row-media" aria-hidden="true" style="--img: url('https://images.unsplash.com/photo-1763422474945-9d294306dc41?auto=format&fit=crop&q=80&w=800')"></span>
+                    <span class="info-badge" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="#fff">
+                            <path d="M6.6 3.5c.5-.1 1 .2 1.2.6l1.4 3.1c.2.5.1 1-.3 1.4l-1.3 1.2a.5.5 0 0 0-.1.6 11 11 0 0 0 4.8 4.8.5.5 0 0 0 .6-.1l1.2-1.3c.4-.4.9-.5 1.4-.3l3.1 1.4c.4.2.7.7.6 1.2l-.6 2.8a1.3 1.3 0 0 1-1.3 1c-8 0-14.8-6.8-14.8-14.8 0-.6.4-1.2 1-1.3l2.8-.6Z"/>
+                        </svg>
+                    </span>
+                    <span class="info-text">
+                        <span class="info-value">036 365 5604</span>
+                        <span class="info-meta">Nhấn để gọi</span>
+                    </span>
                     <i class="fas fa-chevron-right chevron" aria-hidden="true"></i>
                 </a>
-                <a class="info-row info-link" href="mailto:wyndev01@gmail.com" title="Gửi email" aria-label="Gửi email tới wyndev01@gmail.com">
-                    <i class="fas fa-envelope" aria-hidden="true"></i>
-                    <span>wyndev01@gmail.com</span>
+                <a class="info-row info-link" href="mailto:wyndev01@gmail.com" style="--c1: var(--app-mail-a); --c2: var(--app-mail-b); --row-tint: var(--app-mail-b)" title="Gửi email" aria-label="Gửi email tới wyndev01@gmail.com">
+                    <span class="row-media" aria-hidden="true" style="--img: url('https://images.unsplash.com/photo-1675552561767-727c178e0105?auto=format&fit=crop&q=80&w=800')"></span>
+                    <span class="info-badge" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="#fff">
+                            <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z"/>
+                        </svg>
+                    </span>
+                    <span class="info-text">
+                        <span class="info-value">wyndev01@gmail.com</span>
+                        <span class="info-meta">Nhấn để gửi email</span>
+                    </span>
                     <i class="fas fa-chevron-right chevron" aria-hidden="true"></i>
                 </a>
             </div>
@@ -2095,6 +2402,59 @@
         }
 
         // ==================== ACHIEVEMENT LIGHTBOX ====================
+        function initAboutClips() {
+            const clips = document.querySelectorAll('.info-clip');
+            clips.forEach(clip => {
+                const video = clip.querySelector('.row-media-vid');
+                if (!video) return;
+                let loaded = false;
+
+                // Nạp nguồn video sớm (khi hover/focus) để click là phát ngay
+                const ensureLoaded = () => {
+                    if (loaded) return;
+                    loaded = true;
+                    video.src = video.dataset.src;
+                    video.load();
+                };
+                clip.addEventListener('pointerenter', ensureLoaded, { once: true });
+                // pointerdown fires on touch (trước cả click) -> nạp sớm trên điện thoại
+                clip.addEventListener('pointerdown', ensureLoaded, { once: true });
+                clip.addEventListener('focus', ensureLoaded, { once: true });
+
+                // Crossfade chỉ khi video thật sự chạy -> không giật, không nháy đen
+                video.addEventListener('playing', () => {
+                    clip.classList.add('playing');
+                    clip.setAttribute('aria-pressed', 'true');
+                });
+
+                // Nếu video lỗi (mạng/CDN) -> giữ ảnh tĩnh, không kẹt trạng thái "playing"
+                video.addEventListener('error', () => {
+                    clip.classList.remove('playing');
+                    clip.setAttribute('aria-pressed', 'false');
+                });
+
+                const toggle = () => {
+                    if (clip.classList.contains('playing')) {
+                        video.pause();
+                        clip.classList.remove('playing');
+                        clip.setAttribute('aria-pressed', 'false');
+                    } else {
+                        ensureLoaded();
+                        const p = video.play();
+                        if (p && p.catch) p.catch(() => {});
+                    }
+                };
+
+                clip.addEventListener('click', toggle);
+                clip.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggle();
+                    }
+                });
+            });
+        }
+
         function initAchievements() {
             const lightbox = document.getElementById('lightbox');
             if (!lightbox) return;
@@ -2390,6 +2750,9 @@
             // Music mini player
             initMusicPlayer();
 
+            // ABOUT ME: click-to-play video clips (Funded Trader & Location)
+            initAboutClips();
+
             // Liquid swipe wave trên vùng 4 app (chỉ khi trỏ vào .social-bar)
             if (!reduceMotion) initSocialSwipe();
 
@@ -2412,11 +2775,21 @@
                     const rotY = x * 8;
 
                     card.style.transform = `perspective(900px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-6px)`;
+
+                    // Move the specular glare toward the cursor for a real-glass catch-light
+                    card.style.setProperty('--gx', `${((e.clientX - rect.left) / rect.width) * 100}%`);
+                    card.style.setProperty('--gy', `${((e.clientY - rect.top) / rect.height) * 100}%`);
+                    card.style.setProperty('--gi', '0.18');
                 });
 
                 card.addEventListener('mouseleave', () => {
                     card.style.transition = 'all 0.5s cubic-bezier(0.23, 1, 0.32, 1)';
                     card.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0)';
+
+                    // Ease the glare back to its resting position/intensity
+                    card.style.setProperty('--gx', '22%');
+                    card.style.setProperty('--gy', '6%');
+                    card.style.setProperty('--gi', '0.10');
 
                     setTimeout(() => {
                         card.style.transition = 'all 0.4s cubic-bezier(0.23, 1, 0.32, 1)';
@@ -2444,6 +2817,9 @@
 
             // Keyboard accessibility
             document.addEventListener('keydown', (e) => {
+                // Bỏ qua khi lightbox đang mở để không phá bẫy focus của modal
+                const lb = document.getElementById('lightbox');
+                if (lb && lb.classList.contains('open')) return;
                 if (e.key === '/' && document.activeElement.tagName === 'BODY') {
                     e.preventDefault();
                     const firstSocial = document.querySelector('.social-item');
