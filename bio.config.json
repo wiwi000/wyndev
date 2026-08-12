@@ -1,58 +1,145 @@
 {
-  "version": 1,
+  "version": 2,
   "profile": {
     "displayName": "Le Nhut Qui",
-    "headline": "A winner is just a loser who tried one more time.",
-    "bio": "Funded Trader tại The5ers, Topstep & FTMO.",
-    "avatarUri": "https://raw.githubusercontent.com/wiwi000/wyndev/main/assets/avatar.jpg",
+    "headline": "\"A winner is just a loser who tried one more time.\"",
+    "avatarUri": "./assets/bio-studio/avatar.jpeg",
     "backgroundUri": "https://raw.githubusercontent.com/wiwi000/wyndev/main/assets/background.jpg",
-    "verified": true
+    "verified": true,
+    "online": true
   },
-  "links": [
+  "socialLinks": [
     {
-      "id": "facebook",
+      "id": "social-1786515764124-9ibm2",
       "label": "Facebook",
       "url": "https://www.facebook.com/infor.lenhutqui",
       "icon": "facebook",
       "enabled": true
     },
     {
-      "id": "tiktok",
-      "label": "TikTok",
+      "id": "social-1786515764124-vmfgn",
+      "label": "Tiktok",
       "url": "https://www.tiktok.com/@im.wynd",
-      "icon": "music-note",
+      "icon": "tiktok",
       "enabled": true
     },
     {
-      "id": "instagram",
+      "id": "social-1786515764124-sih33",
       "label": "Instagram",
       "url": "https://www.instagram.com/wyndev_",
-      "icon": "camera",
+      "icon": "instagram",
       "enabled": true
     },
     {
-      "id": "discord",
+      "id": "social-1786515764124-2gx9v",
       "label": "Discord",
       "url": "https://discord.gg/3Vcm8BF8",
-      "icon": "chat",
+      "icon": "discord",
       "enabled": true
     }
   ],
-  "appearance": {
-    "accent": "#6C4DFF",
-    "background": "#11111A",
-    "overlayOpacity": 42,
-    "cardRadius": 28,
-    "cardStyle": "glass"
+  "about": {
+    "sectionTitle": "ABOUT ME",
+    "items": [
+      {
+        "id": "about-1786515764126-v730u",
+        "kind": "video",
+        "title": "Funded Trader",
+        "subtitle": "The5ers • Topstep • FTMO",
+        "value": "",
+        "mediaUri": "https://assets.mixkit.co/videos/46990/46990-thumb-720-0.jpg",
+        "enabled": true
+      },
+      {
+        "id": "about-1786515764127-1kh7k",
+        "kind": "video",
+        "title": "TP.HCM, Việt Nam",
+        "subtitle": "Múi giờ GMT+7",
+        "value": "",
+        "mediaUri": "https://assets.mixkit.co/videos/20203/20203-thumb-720-0.jpg",
+        "enabled": true
+      },
+      {
+        "id": "about-1786515764128-41hu4",
+        "kind": "phone",
+        "title": "036 365 5604",
+        "subtitle": "Nhấn để gọi",
+        "value": "tel:+84363655604",
+        "mediaUri": "https://images.unsplash.com/photo-1763422474945-9d294306dc41?auto=format&fit=crop&q=80&w=800",
+        "enabled": true
+      },
+      {
+        "id": "about-1786515764129-p0ib7",
+        "kind": "email",
+        "title": "wyndev01@gmail.com",
+        "subtitle": "Nhấn để gửi email",
+        "value": "mailto:wyndev01@gmail.com",
+        "mediaUri": "https://images.unsplash.com/photo-1675552561767-727c178e0105?auto=format&fit=crop&q=80&w=800",
+        "enabled": true
+      }
+    ]
+  },
+  "achievements": {
+    "sectionTitle": "ACHIEVEMENTS",
+    "subtitle": "Funded Trader • The5ers",
+    "items": [
+      {
+        "id": "achievement-1786515764132-idcw7",
+        "imageUri": "https://raw.githubusercontent.com/wiwi000/wyndev/main/assets/achievement-rrr.png",
+        "title": "Fantastic RRR",
+        "subtitle": "The5ers • 01/2026",
+        "enabled": true
+      },
+      {
+        "id": "achievement-1786515764133-64ms2",
+        "imageUri": "https://raw.githubusercontent.com/wiwi000/wyndev/main/assets/achievement-funded.png",
+        "title": "Funded Certificate",
+        "subtitle": "The5ers • 01/2026",
+        "enabled": true
+      }
+    ]
+  },
+  "payment": {
+    "sectionTitle": "PAYMENT",
+    "channels": [
+      {
+        "id": "payment-1786515764135-8eg1c",
+        "label": "MB Bank • VietQR",
+        "subtitle": "NAPAS 247 • VietQR Global",
+        "qrUri": "https://raw.githubusercontent.com/wiwi000/wyndev/main/assets/qr-mb.jpg%3Fv%3D2",
+        "downloadName": "MB-Bank-VietQR.jpg",
+        "enabled": true
+      },
+      {
+        "id": "payment-1786515764136-etr24",
+        "label": "MoMo • VietQR",
+        "subtitle": "Ví điện tử MoMo • NAPAS 247",
+        "qrUri": "https://raw.githubusercontent.com/wiwi000/wyndev/main/assets/qr-momo.jpg%3Fv%3D2",
+        "downloadName": "MoMo-VietQR.jpg",
+        "enabled": true
+      }
+    ]
   },
   "music": {
     "enabled": true,
     "title": "Bad Boy",
     "artist": "Marwa Loud",
-    "artworkUri": "",
+    "artworkUri": "https://i.ytimg.com/vi/9tDzvJMXDRw/hqdefault.jpg",
     "audioUri": "",
+    "youtubeId": "",
     "autoplay": false,
     "loop": false
   },
-  "generatedAt": "2026-08-12T05:44:04.169Z"
+  "appearance": {
+    "accent": "#30D158",
+    "background": "#000000",
+    "overlayOpacity": 28,
+    "cardRadius": 32,
+    "cardStyle": "glass"
+  },
+  "footer": {
+    "copyright": "© 2026 Le Nhut Qui — All Rights Reserved",
+    "tagline": "Crafted with passion & lots of coffee ☕"
+  },
+  "generatedAt": "2026-08-12T07:41:57.508Z"
 }
