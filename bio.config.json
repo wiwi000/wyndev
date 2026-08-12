@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "profile": {
+    "displayName": "Le Nhut Qui",
+    "headline": "A winner is just a loser who tried one more time.",
+    "bio": "Funded Trader tại The5ers, Topstep & FTMO.",
+    "avatarUri": "https://raw.githubusercontent.com/wiwi000/wyndev/main/assets/avatar.jpg",
+    "backgroundUri": "https://raw.githubusercontent.com/wiwi000/wyndev/main/assets/background.jpg",
+    "verified": true
+  },
+  "links": [
+    {
+      "id": "facebook",
+      "label": "Facebook",
+      "url": "https://www.facebook.com/infor.lenhutqui",
+      "icon": "facebook",
+      "enabled": true
+    },
+    {
+      "id": "tiktok",
+      "label": "TikTok",
+      "url": "https://www.tiktok.com/@im.wynd",
+      "icon": "music-note",
+      "enabled": true
+    },
+    {
+      "id": "instagram",
+      "label": "Instagram",
+      "url": "https://www.instagram.com/wyndev_",
+      "icon": "camera",
+      "enabled": true
+    },
+    {
+      "id": "discord",
+      "label": "Discord",
+      "url": "https://discord.gg/3Vcm8BF8",
+      "icon": "chat",
+      "enabled": true
+    }
+  ],
+  "appearance": {
+    "accent": "#6C4DFF",
+    "background": "#11111A",
+    "overlayOpacity": 42,
+    "cardRadius": 28,
+    "cardStyle": "glass"
+  },
+  "music": {
+    "enabled": true,
+    "title": "Bad Boy",
+    "artist": "Marwa Loud",
+    "artworkUri": "",
+    "audioUri": "",
+    "autoplay": false,
+    "loop": false
+  },
+  "generatedAt": "2026-08-12T05:44:04.169Z"
+}
